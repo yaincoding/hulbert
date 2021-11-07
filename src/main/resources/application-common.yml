@@ -1,0 +1,9 @@
+spring:
+  config:
+    active:
+      on-profile: common
+
+server:
+  port: 8080
+  tomcat:
+    uri-encoding: UTF-8

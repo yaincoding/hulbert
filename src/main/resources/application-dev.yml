@@ -1,0 +1,9 @@
+spring:
+  config:
+    active:
+      on-profile: dev
+
+logging:
+  config: classpath:logging/log4j2-dev.xml
+  level:
+    root: debug

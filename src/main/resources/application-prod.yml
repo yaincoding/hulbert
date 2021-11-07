@@ -1,0 +1,9 @@
+spring:
+  config:
+    active:
+      on-profile: prod
+
+logging:
+  config: classpath:logging/log4j2-prod.xml
+  level:
+    root: info

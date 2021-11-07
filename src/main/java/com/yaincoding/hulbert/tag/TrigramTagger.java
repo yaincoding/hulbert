@@ -1,9 +1,7 @@
 package com.yaincoding.hulbert.tag;
 
 import java.util.List;
-
-import com.yaincoding.hulbert.model.WordPos;
-
+import com.yaincoding.hulbert.representation.WordPos;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package com.yaincoding.hulbert.model;
+package com.yaincoding.hulbert.representation;
 
 import com.yaincoding.hulbert.pos.Pos;
 

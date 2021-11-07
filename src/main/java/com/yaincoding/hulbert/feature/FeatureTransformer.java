@@ -3,8 +3,8 @@ package com.yaincoding.hulbert.feature;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import com.yaincoding.hulbert.model.WordPos;
 import com.yaincoding.hulbert.pos.Pos;
+import com.yaincoding.hulbert.representation.WordPos;
 
 public abstract class FeatureTransformer {
 

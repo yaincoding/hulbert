@@ -6,6 +6,4 @@ import com.yaincoding.hulbert.representation.WordPos;
 public interface Tagger {
 
     List<WordPos> tag(String sentence, boolean flatten, boolean debug);
-
-    private default remainOnlyPos
 }

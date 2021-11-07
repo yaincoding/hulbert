@@ -2,6 +2,8 @@ package com.yaincoding.hulbert.transformer;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.yaincoding.hulbert.feature.BaseFeatureTransformer;
+import com.yaincoding.hulbert.feature.FeatureTransformer;
 import com.yaincoding.hulbert.model.WordPos;
 import com.yaincoding.hulbert.pos.Pos;
 import org.apache.logging.log4j.Level;

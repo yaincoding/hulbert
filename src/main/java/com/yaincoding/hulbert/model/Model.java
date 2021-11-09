@@ -12,33 +12,38 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
-
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.yaincoding.hulbert.pos.Pos;
 import com.yaincoding.hulbert.representation.Eojeol;
+import com.yaincoding.hulbert.representation.Eojeols;
 
-import org.springframework.stereotype.Component;
-
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
-@Component
+@Slf4j
 public abstract class Model {
 
+    @Getter
     protected Map<StateFeature, Double> stateFeatures;
+    @Getter
     protected Map<Transition, Double> transitions;
+    @Getter
     protected Map<Pos, Map<String, Double>> pos2words;
 
-    protected static int MAX_WORD_LEN;
-    protected static double MAX_SCORE;
+    protected int MAX_WORD_LEN;
+    protected double MAX_SCORE;
 
-    private static final double UNKNOWN_PENALTY = -0.1;
+    public final double UNKNOWN_PENALTY = -0.1;
 
-    @PostConstruct
-    private void loadJsonModel() throws IOException {
-        String modelPath = System.getenv("model_path");
+    public Model(String modelPath) throws IOException {
+        loadJsonModel(modelPath);
+    }
+
+    protected void loadJsonModel(String modelPath) throws IOException {
         String jsonString = Files.readString(Paths.get(modelPath), StandardCharsets.UTF_8);
         JsonObject jsonObject = JsonParser.parseString(jsonString).getAsJsonObject();
 
@@ -50,10 +55,9 @@ public abstract class Model {
 
         this.pos2words = constructDictionaryFromStateFeatures();
 
-        separateFeatures();
     }
 
-    private Map<StateFeature, Double> createStateFeatureModel(JsonObject stateFeaturesJsonObject) {
+    protected Map<StateFeature, Double> createStateFeatureModel(JsonObject stateFeaturesJsonObject) {
         Map<StateFeature, Double> stateFeatures = new HashMap<>();
         for (Entry<String, JsonElement> entry : stateFeaturesJsonObject.entrySet()) {
             String stateFeature = entry.getKey();
@@ -61,33 +65,41 @@ public abstract class Model {
             MAX_SCORE = Math.max(MAX_SCORE, score);
 
             String[] tokens = stateFeature.split(" -> ");
-            StateFeature sf = StateFeature.of(tokens[0], Pos.valueOf(tokens[1]));
-
-            stateFeatures.put(sf, score);
+            try {
+                StateFeature sf = StateFeature.of(tokens[0], Pos.valueOf(tokens[1]));
+                stateFeatures.put(sf, score);
+            } catch (IllegalArgumentException e) {
+                log.error(stateFeature);
+            }
         }
 
         return stateFeatures;
     }
 
-    private Map<Transition, Double> createTransitionModel(JsonObject transitionsJsonObject) {
+    protected Map<Transition, Double> createTransitionModel(JsonObject transitionsJsonObject) {
         Map<Transition, Double> transitions = new HashMap<>();
         for (Entry<String, JsonElement> entry : transitionsJsonObject.entrySet()) {
             String transition = entry.getKey();
             String[] poses = transition.split(" -> ");
-            Pos prevPos = Pos.valueOf(poses[0]);
-            Pos nextPos = Pos.valueOf(poses[1]);
 
-            Transition t = Transition.of(prevPos, nextPos);
-            double score = entry.getValue().getAsDouble();
-            MAX_SCORE = Math.max(MAX_SCORE, score);
+            try {
+                Pos prevPos = Pos.valueOf(poses[0]);
+                Pos nextPos = Pos.valueOf(poses[1]);
+                Transition t = Transition.of(prevPos, nextPos);
+                double score = entry.getValue().getAsDouble();
+                MAX_SCORE = Math.max(MAX_SCORE, score);
 
-            transitions.put(t, score);
+                transitions.put(t, score);
+            } catch (IllegalArgumentException e) {
+                log.error(transition);
+            }
+
         }
 
         return transitions;
     }
 
-    private Map<Pos, Map<String, Double>> constructDictionaryFromStateFeatures() {
+    protected Map<Pos, Map<String, Double>> constructDictionaryFromStateFeatures() {
         Map<Pos, Map<String, Double>> pos2words = new HashMap<>();
         for (Entry<StateFeature, Double> entry : this.stateFeatures.entrySet()) {
             StateFeature sf = entry.getKey();
@@ -108,12 +120,12 @@ public abstract class Model {
 
     public List<List<Eojeol>> lookup(String sentence, boolean guessTag) {
         final String doubleSpaceRemovedSentece = sentence.replaceAll("\\s{2,}", "\\s");
-        return Arrays.stream(sentence.split("\\s"))
+        return Arrays.stream(doubleSpaceRemovedSentece.split("\\s"))
                 .map(w -> wordLookup(w, doubleSpaceRemovedSentece.length(), guessTag)).flatMap(List::stream)
                 .collect(Collectors.toList());
     }
 
-    private List<List<Eojeol>> wordLookup(String eojeol, int offset, boolean guessTag) {
+    protected List<List<Eojeol>> wordLookup(String eojeol, int offset, boolean guessTag) {
 
         List<List<Eojeol>> poses = new ArrayList<>();
         for (int i = 0; i < eojeol.length(); i++) {
@@ -159,7 +171,7 @@ public abstract class Model {
         return poses;
     }
 
-    private Map<Pos, Double> getTagScore(String word) {
+    protected Map<Pos, Double> getTagScore(String word) {
         Map<Pos, Double> tagScores = new HashMap<>();
         for (Pos pos : pos2words.keySet()) {
             if (pos2words.get(pos).containsKey(word)) {
@@ -169,7 +181,7 @@ public abstract class Model {
         return tagScores;
     }
 
-    private Map<Pos, Double> guessTag() {
+    protected Map<Pos, Double> guessTag() {
         Map<Pos, Double> tagScores = new HashMap<>();
 
         tagScores.put(Pos.NNG, UNKNOWN_PENALTY);
@@ -183,15 +195,11 @@ public abstract class Model {
 
     protected abstract void separateFeatures();
 
-    public Map<StateFeature, Double> getStateFeatures() {
-        return this.stateFeatures;
-    }
-
-    public Map<Transition, Double> getTransitions() {
-        return this.transitions;
-    }
+    public abstract double score(Eojeols immature, Eojeol eojeol);
 
     @Getter
+    @EqualsAndHashCode
+    @ToString
     public static class StateFeature {
 
         private String feature;

@@ -121,7 +121,7 @@ public abstract class Model {
     public List<List<Eojeol>> lookup(String sentence, boolean guessTag) {
         final String doubleSpaceRemovedSentece = sentence.replaceAll("\\s{2,}", "\\s");
         return Arrays.stream(doubleSpaceRemovedSentece.split("\\s"))
-                .map(w -> wordLookup(w, doubleSpaceRemovedSentece.length(), guessTag)).flatMap(List::stream)
+                .map(w -> wordLookup(w, 0, guessTag)).flatMap(List::stream)
                 .collect(Collectors.toList());
     }
 

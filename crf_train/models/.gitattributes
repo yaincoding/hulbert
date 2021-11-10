@@ -1,0 +1,2 @@
+sejong_all_base.model filter=lfs diff=lfs merge=lfs -text
+sejong_all_trigram.model filter=lfs diff=lfs merge=lfs -text

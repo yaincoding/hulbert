@@ -45,31 +45,32 @@ public class Beam {
                 final int endCopy = end;
                 List<Eojeol> appendingEojeols = beginIndex.get(begin).stream()
                         .filter(eojeol -> eojeol.getEnd() == endCopy).collect(Collectors.toList());
-                if (appendingEojeols == null || appendingEojeols.isEmpty()) {
+                if (appendingEojeols.isEmpty()) {
                     String sub = chars.substring(begin, end);
                     appendingEojeols = Collections.singletonList(Eojeol.builder().eojeol(sub + "/" + Pos.UNK.name())
                             .firstWord(sub).lastWord(sub).firstTag(Pos.UNK).lastTag(Pos.UNK).start(begin).end(end)
                             .score(unknownPenalty).isCompound(false).isUnknown(true).build());
                 }
-
-                matures = appending(immatures, appendingEojeols, matures);
+                appending(immatures, appendingEojeols, matures);
             }
             append(matures);
         }
 
         Eojeol eos = Eojeol.builder().eojeol("").firstWord("EOS").firstTag(Pos.EOS).lastWord("EOS").lastTag(Pos.EOS)
                 .start(chars.length()).end(chars.length()).score(0.0).isCompound(false).isUnknown(false).build();
-        List<Eojeols> matures = appending(beam.get(beam.size() - 1), Collections.singletonList(eos), new ArrayList<>());
+
+        List<Eojeols> matures = new ArrayList<>();
+        appending(beam.get(beam.size() - 1), Collections.singletonList(eos), matures);
         append(matures);
 
         return beam.get(beam.size() - 1);
     }
 
-    private List<Eojeols> appending(List<Eojeols> immatures, List<Eojeol> appendingWords, List<Eojeols> matures) {
+    private void appending(List<Eojeols> immatures, List<Eojeol> appendingWords, List<Eojeols> matures) {
         for (Eojeols immature : immatures) {
             for (Eojeol eojeol : appendingWords) {
                 List<Eojeol> eojeols = new ArrayList<>();
-                eojeols.addAll(List.copyOf(immature.getEojeols()));
+                eojeols.addAll(immature.getEojeols());
                 eojeols.add(eojeol);
                 double score = immature.getScore();
                 score += preferenceScore(eojeol);
@@ -77,7 +78,6 @@ public class Beam {
                 matures.add(Eojeols.of(eojeols, score));
             }
         }
-        return matures;
     }
 
     private double preferenceScore(Eojeol eojeol) {

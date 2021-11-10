@@ -26,13 +26,12 @@ public class TrigramTagger implements Tagger {
     public List<Eojeols> tag(String sentence, boolean flatten, boolean debug) {
 
         List<List<Eojeol>> beginIndex = model.lookup(sentence, false);
-        String chars = StringUtils.trimAllWhitespace(sentence);
 
         Beam beam = Beam.builder().topK(5).unknownPenalty(model.UNKNOWN_PENALTY).aSyllablePenalty(-0.3)
                 .nounPreference(0.4).longerNounPreference(0.3).model(model).build();
 
-        List<Eojeols> topEojeols = beam.search(beginIndex, chars);
-        return topEojeols.subList(1, topEojeols.size() - 1);
+        List<Eojeols> topEojeols = beam.search(beginIndex, StringUtils.trimAllWhitespace(sentence));
+        return topEojeols;
     }
 
 }

@@ -22,8 +22,9 @@ public class Beam {
     private final double longerNounPreference;
     private final List<List<Eojeols>> beam = new ArrayList<>() {
         {
-            Eojeol bos = Eojeol.builder().eojeol("BOS/BOS").firstWord("BOS").firstTag(Pos.BOS).lastWord("BOS")
-                    .lastTag(Pos.BOS).start(0).end(0).score(0.0).isCompound(false).isUnknown(false).build();
+            Eojeol bos = Eojeol.builder().eojeol("BOS/" + Pos.BOS.name()).firstWord("BOS").firstTag(Pos.BOS)
+                    .lastWord("BOS").lastTag(Pos.BOS).start(0).end(0).score(0.0).isCompound(false).isUnknown(false)
+                    .build();
             Eojeols eojeols = Eojeols.of(Collections.singletonList(bos), 0.0);
             add(Collections.singletonList(eojeols));
         }
@@ -56,8 +57,9 @@ public class Beam {
             append(matures);
         }
 
-        Eojeol eos = Eojeol.builder().eojeol("").firstWord("EOS").firstTag(Pos.EOS).lastWord("EOS").lastTag(Pos.EOS)
-                .start(chars.length()).end(chars.length()).score(0.0).isCompound(false).isUnknown(false).build();
+        Eojeol eos = Eojeol.builder().eojeol("EOS/" + Pos.EOS.name()).firstWord("EOS").firstTag(Pos.EOS).lastWord("EOS")
+                .lastTag(Pos.EOS).start(chars.length()).end(chars.length()).score(0.0).isCompound(false)
+                .isUnknown(false).build();
 
         List<Eojeols> matures = new ArrayList<>();
         appending(beam.get(beam.size() - 1), Collections.singletonList(eos), matures);

@@ -11,4 +11,5 @@ logging:
 modelparam:
   a_syllable_penalty: -0.3
   noun_preference: 0.5
-  longer_noun_preference: 100
+  longer_noun_preference: 10
+  unknown_penalty: -0.1

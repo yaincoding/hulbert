@@ -6,5 +6,8 @@ import com.yaincoding.hulbert.representation.Eojeols;
 
 public interface Tagger {
 
-    List<Eojeols> tag(String sentence, boolean flatten, boolean debug);
+    List<Eojeols> tag(String sentence, boolean flatten);
+
+    List<Eojeols> tag(String sentence, boolean flatten, double aSyllablePenalty, double nounPreference,
+            double longerNounPreference, double unknownPenalty);
 }

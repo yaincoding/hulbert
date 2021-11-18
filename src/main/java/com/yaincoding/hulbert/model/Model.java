@@ -5,12 +5,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -18,6 +16,8 @@ import com.google.gson.JsonParser;
 import com.yaincoding.hulbert.pos.Pos;
 import com.yaincoding.hulbert.representation.Eojeol;
 import com.yaincoding.hulbert.representation.Eojeols;
+
+import org.springframework.beans.factory.annotation.Value;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -34,10 +34,11 @@ public abstract class Model {
     @Getter
     protected Map<Pos, Map<String, Double>> pos2words;
 
+    @Value("${modelparam.unknown_penalty}")
+    private double UNKNOWN_PENALTY;
+
     protected int MAX_WORD_LEN;
     protected double MAX_SCORE;
-
-    public final double UNKNOWN_PENALTY = -0.1;
 
     public Model(String modelPath) throws IOException {
         loadJsonModel(modelPath);
@@ -119,10 +120,17 @@ public abstract class Model {
     }
 
     public List<List<Eojeol>> lookup(String sentence, boolean guessTag) {
-        final String doubleSpaceRemovedSentece = sentence.replaceAll("\\s{2,}", "\\s");
-        return Arrays.stream(doubleSpaceRemovedSentece.split("\\s"))
-                .map(w -> wordLookup(w, 0, guessTag)).flatMap(List::stream)
-                .collect(Collectors.toList());
+
+        List<List<Eojeol>> begins = new ArrayList<>();
+
+        String[] eojeols = sentence.replaceAll("\\s{2,}", "\\s").split("\\s");
+        int offset = 0;
+        for (int i = 0; i < eojeols.length; i++) {
+            begins.addAll(wordLookup(eojeols[i], offset, guessTag));
+            offset += eojeols[i].length();
+        }
+
+        return begins;
     }
 
     protected List<List<Eojeol>> wordLookup(String eojeol, int offset, boolean guessTag) {
@@ -216,6 +224,7 @@ public abstract class Model {
     }
 
     @Getter
+    @EqualsAndHashCode
     public static class Transition {
         private Pos prevPos;
         private Pos nextPos;
